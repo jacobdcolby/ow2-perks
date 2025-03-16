@@ -563,7 +563,7 @@ def save_to_formats(dataframe):
 
                 // Forcefully reapply filters to ensure everything is visible
                 setTimeout(() => {
-                    applyFilters();
+                    applyFilters(true);
                 }, 10);
             });
                 
@@ -594,7 +594,7 @@ def save_to_formats(dataframe):
                 });
                 
                 // Filter functionality
-                function applyFilters() {
+                function applyFilters(reset = false) {
                     const roleFilter = document.getElementById('role-filter').value;
                     const heroFilter = document.getElementById('hero-filter').value;
                     const tierFilter = document.getElementById('tier-filter').value;
@@ -602,15 +602,20 @@ def save_to_formats(dataframe):
                     let visibleCount = 0;
                     
                     cards.forEach(card => {
-                        const matchesRole = roleFilter === 'all' || card.dataset.role === roleFilter;
-                        const matchesHero = heroFilter === 'all' || card.dataset.hero === heroFilter;
-                        const matchesTier = tierFilter === 'all' || card.dataset.tier === tierFilter;
-                        
-                        if (matchesRole && matchesHero && matchesTier) {
+                        if (reset || (roleFilter === 'all' && heroFilter === 'all' && tierFilter === 'all')) {
                             card.style.display = 'block';
                             visibleCount++;
                         } else {
-                            card.style.display = 'none';
+                            const matchesRole = roleFilter === 'all' || card.dataset.role === roleFilter;
+                            const matchesHero = heroFilter === 'all' || card.dataset.hero === heroFilter;
+                            const matchesTier = tierFilter === 'all' || card.dataset.tier === tierFilter;
+                            
+                            if (matchesRole && matchesHero && matchesTier) {
+                                card.style.display = 'block';
+                                visibleCount++;
+                            } else {
+                                card.style.display = 'none';
+                            }
                         }
                     });
                     

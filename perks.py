@@ -830,9 +830,9 @@ def save_to_formats(dataframe):
     </html>
     """
     
-    with open('overwatch_perks_flashcards.html', 'w', encoding='utf-8') as f:
+    with open('index.html', 'w', encoding='utf-8') as f:
         f.write(html_output)
-    print("Data saved to overwatch_perks_flashcards.html")
+    print("Data saved to index.html")
 
 if __name__ == "__main__":
     print("Scraping Overwatch perks data...")

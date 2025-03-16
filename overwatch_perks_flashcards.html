@@ -2801,32 +2801,33 @@
                     });
                 });
                 
+                // Capture the initial order of cards
+                let defaultOrder = Array.from(cards);
+                
                 // Reset all cards button
-                let defaultOrder = Array.from(document.querySelectorAll('.flashcard'));
-            
-            document.getElementById('reset').addEventListener('click', function() {
-                let container = document.getElementById('flashcards');
-
-                // Reset filter selections
-                document.getElementById('role-filter').value = 'all';
-                document.getElementById('hero-filter').value = 'all';
-                document.getElementById('tier-filter').value = 'all';
-                
-                // Forcefully reapply filters to ensure everything is visible
-                setTimeout(() => {
-                    applyFilters();
-                }, 10);
-                
-                // Restore all cards in their original order
-                container.innerHTML = '';
-                defaultOrder.forEach(card => {
-                    let newCard = card.cloneNode(true);
-                    newCard.addEventListener('click', function() {
-                        this.classList.toggle('flipped');
+                document.getElementById('reset').addEventListener('click', function() {
+                    let container = document.getElementById('flashcards');
+                    
+                    // Restore all cards in their original order
+                    container.innerHTML = '';
+                    defaultOrder.forEach(card => {
+                        let newCard = card.cloneNode(true);
+                        newCard.addEventListener('click', function() {
+                            this.classList.toggle('flipped');
+                        });
+                        container.appendChild(newCard);
                     });
-                    container.appendChild(newCard);
+
+                    // Reset filter selections
+                    document.getElementById('role-filter').value = 'all';
+                    document.getElementById('hero-filter').value = 'all';
+                    document.getElementById('tier-filter').value = 'all';
+
+                    // Forcefully reapply filters to ensure everything is visible
+                    setTimeout(() => {
+                        applyFilters(true);
+                    }, 10);
                 });
-            });
                 
                 // Shuffle cards
                 document.getElementById('shuffle').addEventListener('click', function() {
@@ -2855,7 +2856,7 @@
                 });
                 
                 // Filter functionality
-                function applyFilters() {
+                function applyFilters(reset = false) {
                     const roleFilter = document.getElementById('role-filter').value;
                     const heroFilter = document.getElementById('hero-filter').value;
                     const tierFilter = document.getElementById('tier-filter').value;
@@ -2863,15 +2864,20 @@
                     let visibleCount = 0;
                     
                     cards.forEach(card => {
-                        const matchesRole = roleFilter === 'all' || card.dataset.role === roleFilter;
-                        const matchesHero = heroFilter === 'all' || card.dataset.hero === heroFilter;
-                        const matchesTier = tierFilter === 'all' || card.dataset.tier === tierFilter;
-                        
-                        if (matchesRole && matchesHero && matchesTier) {
+                        if (reset) {
                             card.style.display = 'block';
                             visibleCount++;
                         } else {
-                            card.style.display = 'none';
+                            const matchesRole = roleFilter === 'all' || card.dataset.role === roleFilter;
+                            const matchesHero = heroFilter === 'all' || card.dataset.hero === heroFilter;
+                            const matchesTier = tierFilter === 'all' || card.dataset.tier === tierFilter;
+                            
+                            if (matchesRole && matchesHero && matchesTier) {
+                                card.style.display = 'block';
+                                visibleCount++;
+                            } else {
+                                card.style.display = 'none';
+                            }
                         }
                     });
                     
@@ -2880,9 +2886,9 @@
                 }
                 
                 // Add event listeners to filters
-                document.getElementById('role-filter').addEventListener('change', applyFilters);
-                document.getElementById('hero-filter').addEventListener('change', applyFilters);
-                document.getElementById('tier-filter').addEventListener('change', applyFilters);
+                document.getElementById('role-filter').addEventListener('change', () => applyFilters());
+                document.getElementById('hero-filter').addEventListener('change', () => applyFilters());
+                document.getElementById('tier-filter').addEventListener('change', () => applyFilters());
                 
                 // Initialize stats
                 document.getElementById('stats').textContent = `SHOWING ${cards.length} OF ${cards.length} PERKS`;

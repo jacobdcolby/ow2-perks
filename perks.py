@@ -540,32 +540,33 @@ def save_to_formats(dataframe):
                     });
                 });
                 
-                // Reset all cards button
-                let defaultOrder = Array.from(document.querySelectorAll('.flashcard'));
-            
-            document.getElementById('reset').addEventListener('click', function() {
-                let container = document.getElementById('flashcards');
+                // Capture the initial order of cards
+                let defaultOrder = Array.from(cards);
                 
-                // Restore all cards in their original order
-                container.innerHTML = '';
-                defaultOrder.forEach(card => {
-                    let newCard = card.cloneNode(true);
-                    newCard.addEventListener('click', function() {
-                        this.classList.toggle('flipped');
+                // Reset all cards button
+                document.getElementById('reset').addEventListener('click', function() {
+                    let container = document.getElementById('flashcards');
+                    
+                    // Restore all cards in their original order
+                    container.innerHTML = '';
+                    defaultOrder.forEach(card => {
+                        let newCard = card.cloneNode(true);
+                        newCard.addEventListener('click', function() {
+                            this.classList.toggle('flipped');
+                        });
+                        container.appendChild(newCard);
                     });
-                    container.appendChild(newCard);
+
+                    // Reset filter selections
+                    document.getElementById('role-filter').value = 'all';
+                    document.getElementById('hero-filter').value = 'all';
+                    document.getElementById('tier-filter').value = 'all';
+
+                    // Forcefully reapply filters to ensure everything is visible
+                    setTimeout(() => {
+                        applyFilters(true);
+                    }, 10);
                 });
-
-                // Reset filter selections
-                document.getElementById('role-filter').value = 'all';
-                document.getElementById('hero-filter').value = 'all';
-                document.getElementById('tier-filter').value = 'all';
-
-                // Forcefully reapply filters to ensure everything is visible
-                setTimeout(() => {
-                    applyFilters(true);
-                }, 10);
-            });
                 
                 // Shuffle cards
                 document.getElementById('shuffle').addEventListener('click', function() {
@@ -602,7 +603,7 @@ def save_to_formats(dataframe):
                     let visibleCount = 0;
                     
                     cards.forEach(card => {
-                        if (reset || (roleFilter === 'all' && heroFilter === 'all' && tierFilter === 'all')) {
+                        if (reset) {
                             card.style.display = 'block';
                             visibleCount++;
                         } else {
@@ -624,9 +625,9 @@ def save_to_formats(dataframe):
                 }
                 
                 // Add event listeners to filters
-                document.getElementById('role-filter').addEventListener('change', applyFilters);
-                document.getElementById('hero-filter').addEventListener('change', applyFilters);
-                document.getElementById('tier-filter').addEventListener('change', applyFilters);
+                document.getElementById('role-filter').addEventListener('change', () => applyFilters());
+                document.getElementById('hero-filter').addEventListener('change', () => applyFilters());
+                document.getElementById('tier-filter').addEventListener('change', () => applyFilters());
                 
                 // Initialize stats
                 document.getElementById('stats').textContent = `SHOWING ${cards.length} OF ${cards.length} PERKS`;

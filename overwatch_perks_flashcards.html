@@ -11,10 +11,17 @@
                 font-family: 'Overwatch' ;
                 src: url('Overwatch_Oblique.ttf') format('truetype');
             }
+            * {
+                -ms-overflow-style: none;  /* IE and Edge */
+                scrollbar-width: none;  /* Firefox */
+            }
+            *::-webkit-scrollbar {
+                display: none;
+            }
             body {
+                background-color: #1e1f23;
                 font-family: "Exo 2", sans-serif;
                 margin: 20px;
-                background-color: #1e1f23;
             }
             h1 {
                 font-family: 'Overwatch';
@@ -95,6 +102,7 @@
                 outline: 1px solid #42474d;
                 outline-offset: 15px;
                 object-fit: contain;
+                margin-top: 40px;
             }
             .hero-name {
                 font-family: "Overwatch";
@@ -114,10 +122,10 @@
                 font-weight: 400;
                 text-transform: uppercase;
                 margin-bottom: 15px;
-                color: #FF9C1E;
+                color: #f06414;
             }
             .perk-tier.major {
-                color: #FF9C1E;
+                color: #f06414;
             }
             .perk-tier.minor {
                 color: #76ABFF;
@@ -130,7 +138,7 @@
                 font-family: 'Overwatch';
                 font-size: 1.4em;
                 font-weight: 500;
-                background-color: #FF9C1E;
+                background-color: #f06414;
                 color: white;
                 border: none;
                 padding: 10px 20px;
@@ -2785,51 +2793,279 @@
                 // Get all card elements
                 const cards = document.querySelectorAll('.flashcard');
                 
-                // Click handler for cards
-                cards.forEach(card => {
-                    card.addEventListener('click', function() {
-                        this.classList.toggle('flipped');
-                    });
-                });
+                // Store the original order of cards
+                const originalOrder = Array.from(cards);
                 
-                // Flip all cards button
-                document.getElementById('flip-all').addEventListener('click', function() {
-                    cards.forEach(card => {
-                        if (card.style.display !== 'none') {
-                            card.classList.add('flipped');
+                // Function to attach click handlers to cards
+                function attachCardClickHandlers() {
+                    document.querySelectorAll('.flashcard').forEach(card => {
+                        // Remove existing listener first to prevent duplicates
+                        card.removeEventListener('click', flipCard);
+                        // Add the click handler
+                        card.addEventListener('click', flipCard);
+                    });
+                }
+                
+                // Card flip function
+                function flipCard() {
+                    this.classList.toggle('flipped');
+                }
+                
+                // Initial attachment of click handlers
+                attachCardClickHandlers();
+                
+                // Convert selects to multi-select toggle buttons
+                function convertSelectsToToggleButtons() {
+                    const filtersContainer = document.createElement('div');
+                    filtersContainer.className = 'filters-container';
+                    filtersContainer.style.display = 'flex';
+                    filtersContainer.style.flexDirection = 'column';
+                    filtersContainer.style.alignItems = 'center';
+                    filtersContainer.style.gap = '5px';
+                    filtersContainer.style.margin = '10px 0 20px 0';
+                    
+                    // Group heroes by role
+                    const heroesByRole = {
+                        'Tanks': [],
+                        'Damage': [],
+                        'Support': []
+                    };
+                    
+                    // Process heroes and store them with their roles
+                    const processedHeroes = new Set();
+                    Array.from(cards).forEach(card => {
+                        const hero = card.dataset.hero;
+                        const role = card.dataset.role;
+                        
+                        if (!processedHeroes.has(hero) && role in heroesByRole) {
+                            const heroIconPath = `hero_icons/${hero.replace(' ', '_').replace('.', '').replace(':', '_')}.png`;
+                            heroesByRole[role].push({ name: hero, iconPath: heroIconPath });
+                            processedHeroes.add(hero);
                         }
                     });
-                });
-                
-                // Capture the initial order of cards
-                let defaultOrder = Array.from(cards);
-                
-                // Reset all cards button
-                document.getElementById('reset').addEventListener('click', function() {
-                    let container = document.getElementById('flashcards');
                     
-                    // Restore all cards in their original order
-                    container.innerHTML = '';
-                    defaultOrder.forEach(card => {
-                        let newCard = card.cloneNode(true);
-                        newCard.addEventListener('click', function() {
-                            this.classList.toggle('flipped');
-                        });
-                        container.appendChild(newCard);
+                    // Sort heroes in each role alphabetically
+                    Object.keys(heroesByRole).forEach(role => {
+                        heroesByRole[role].sort((a, b) => a.name.localeCompare(b.name));
                     });
+                    
+                    // Create hero filters by role
+                    const roleOrder = ['Tanks', 'Damage', 'Support'];
+                    roleOrder.forEach(role => {
+                        // Create row for this role's heroes
+                        const heroRowContainer = document.createElement('div');
+                        heroRowContainer.className = `hero-toggle-group toggle-group ${role.toLowerCase()}-heroes`;
+                        heroRowContainer.style.display = 'flex';
+                        heroRowContainer.style.flexWrap = 'wrap';
+                        heroRowContainer.style.gap = '5px';
+                        heroRowContainer.style.justifyContent = 'center';
+                        heroRowContainer.style.margin = '5px 0';
+                        heroRowContainer.style.maxWidth = '80%';
+                        
+                        // Create hero icons for this role
+                        heroesByRole[role].forEach(hero => {
+                            const iconButton = document.createElement('div');
+                            iconButton.className = 'hero-filter-icon';
+                            iconButton.dataset.value = hero.name;
+                            iconButton.dataset.filterType = 'hero';
+                            iconButton.dataset.role = role;
+                            iconButton.title = hero.name;
+                            
+                            // Style the button as a circular icon
+                            iconButton.style.width = '50px';
+                            iconButton.style.height = '50px';
+                            iconButton.style.borderRadius = '50%';
+                            iconButton.style.overflow = 'hidden';
+                            iconButton.style.cursor = 'pointer';
+                            iconButton.style.border = '2px solid #4D4D4D';
+                            iconButton.style.padding = '2px';
+                            iconButton.style.backgroundColor = '#27292f';
+                            iconButton.style.transition = 'all 0.2s ease';
+                            
+                            // Create the image element
+                            const img = document.createElement('img');
+                            img.src = hero.iconPath;
+                            img.alt = hero.name;
+                            img.style.width = '100%';
+                            img.style.height = '100%';
+                            img.style.objectFit = 'cover';
+                            img.style.borderRadius = '50%';
+                            
+                            // Add fallback for image load errors
+                            img.onerror = function() {
+                                this.src = 'https://static.wikia.nocookie.net/overwatch_gamepedia/images/b/bd/Icon-Overwatch_2.png/revision/latest/scale-to-width-down/50';
+                            };
+                            
+                            iconButton.appendChild(img);
+                            
+                            // Click handler for toggle buttons
+                            iconButton.addEventListener('click', function() {
+                                this.classList.toggle('active');
+                                
+                                if (this.classList.contains('active')) {
+                                    this.style.border = '2px solid #f06414';
+                                    this.style.boxShadow = '0 0 10px #f06414';
+                                } else {
+                                    this.style.border = '2px solid #4D4D4D';
+                                    this.style.boxShadow = 'none';
+                                }
+                                
+                                applyFilters();
+                            });
+                            
+                            heroRowContainer.appendChild(iconButton);
+                        });
+                        
+                        // Add this role's heroes to container
+                        filtersContainer.appendChild(heroRowContainer);
+                    });
+                    
+                    // Regular role and tier filters
+                    const filters = ['role', 'tier'];
+                    filters.forEach(filterType => {
+                        const selectElement = document.getElementById(`${filterType}-filter`);
+                        const options = Array.from(selectElement.options);
+                        
+                        // Create a new container for buttons
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.className = `${filterType}-toggle-group toggle-group`;
+                        buttonContainer.style.display = 'flex';
+                        buttonContainer.style.flexWrap = 'wrap';
+                        buttonContainer.style.gap = '5px';
+                        buttonContainer.style.justifyContent = 'center';
+                        
+                        // Create toggle buttons for each option (skipping "all")
+                        options.forEach(option => {
+                            if (option.value === 'all') return; // Skip the "all" option
+                            
+                            const button = document.createElement('button');
+                            button.textContent = option.textContent;
+                            button.dataset.value = option.value;
+                            button.dataset.filterType = filterType;
+                            button.className = 'filter-toggle';
+                            button.style.backgroundColor = '#4D4D4D';
+                            button.style.opacity = '0.6';
+                            button.style.margin = '3px';
 
-                    // Reset filter selections
-                    document.getElementById('role-filter').value = 'all';
-                    document.getElementById('hero-filter').value = 'all';
-                    document.getElementById('tier-filter').value = 'all';
-
-                    // Forcefully reapply filters to ensure everything is visible
-                    setTimeout(() => {
-                        applyFilters(true);
-                    }, 10);
+                            // Click handler for toggle buttons
+                            button.addEventListener('click', function() {
+                                this.classList.toggle('active');
+                                
+                                if (this.classList.contains('active')) {
+                                    this.style.backgroundColor = '#f06414';
+                                    this.style.opacity = '1';
+                                } else {
+                                    this.style.backgroundColor = '#4D4D4D';
+                                    this.style.opacity = '0.6';
+                                }
+                                
+                                applyFilters();
+                            });
+                            
+                            buttonContainer.appendChild(button);
+                        });
+                        
+                        // Add to filters container
+                        filtersContainer.appendChild(buttonContainer);
+                    });
+                    
+                    // Replace the old filters div with our new container
+                    const oldFiltersDiv = document.querySelector('.filters');
+                    oldFiltersDiv.parentNode.replaceChild(filtersContainer, oldFiltersDiv);
+                }
+                
+                // Call the function to convert selects to toggle buttons
+                convertSelectsToToggleButtons();
+                
+                // Modify the front of cards to show hero name
+                cards.forEach(card => {
+                    const heroName = card.dataset.hero;
+                    const frontSide = card.querySelector('.flashcard-front');
+                    
+                    // Create hero name element
+                    const heroNameElement = document.createElement('div');
+                    heroNameElement.className = 'hero-name-front';
+                    heroNameElement.textContent = heroName;
+                    heroNameElement.style.marginTop = '30px';
+                    heroNameElement.style.fontFamily = "'Overwatch'";
+                    heroNameElement.style.fontSize = '1.4em';
+                    heroNameElement.style.color = 'white';
+                    
+                    // Add it to the front side
+                    frontSide.appendChild(heroNameElement);
                 });
                 
-                // Shuffle cards
+                // Updated applyFilters function for toggle buttons
+                function applyFilters() {
+                    // Get active filters
+                    const activeRoles = Array.from(document.querySelectorAll('.role-toggle-group .filter-toggle.active'))
+                        .map(btn => btn.dataset.value);
+                    
+                    const activeHeroes = Array.from(document.querySelectorAll('.hero-toggle-group .hero-filter-icon.active'))
+                        .map(btn => btn.dataset.value);
+                    
+                    const activeTiers = Array.from(document.querySelectorAll('.tier-toggle-group .filter-toggle.active'))
+                        .map(btn => btn.dataset.value);
+                    
+                    let visibleCount = 0;
+                    
+                    cards.forEach(card => {
+                        const cardRole = card.dataset.role;
+                        const cardHero = card.dataset.hero;
+                        const cardTier = card.dataset.tier;
+                        
+                        const matchesRole = activeRoles.length === 0 || activeRoles.includes(cardRole);
+                        const matchesHero = activeHeroes.length === 0 || activeHeroes.includes(cardHero);
+                        const matchesTier = activeTiers.length === 0 || activeTiers.includes(cardTier);
+                        
+                        if (matchesRole && matchesHero && matchesTier) {
+                            card.style.display = 'block';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                    
+                    // Update stats
+                    document.getElementById('stats').textContent = `SHOWING ${visibleCount} OF ${cards.length} PERKS`;
+                }
+                
+                // Reset all cards button - now also resets filters
+                document.getElementById('reset').addEventListener('click', function() {
+                    const container = document.getElementById('flashcards');
+                    
+                    // Remove flipped class from all cards
+                    cards.forEach(card => {
+                        card.classList.remove('flipped');
+                    });
+                    
+                    // Reset regular toggle filters
+                    document.querySelectorAll('.filter-toggle.active').forEach(button => {
+                        button.classList.remove('active');
+                        button.style.backgroundColor = '#4D4D4D';
+                        button.style.opacity = '0.6';
+                    });
+                    
+                    // Reset hero icon filters
+                    document.querySelectorAll('.hero-filter-icon.active').forEach(icon => {
+                        icon.classList.remove('active');
+                        icon.style.border = '2px solid #4D4D4D';
+                        icon.style.boxShadow = 'none';
+                    });
+                    
+                    // Restore original order
+                    originalOrder.forEach(card => {
+                        container.appendChild(card);
+                    });
+                    
+                    // Reattach click handlers
+                    attachCardClickHandlers();
+                    
+                    // Apply filters (with all filters inactive, this will show all cards)
+                    applyFilters();
+                });
+                
+                // Update your shuffle button too
                 document.getElementById('shuffle').addEventListener('click', function() {
                     const container = document.getElementById('flashcards');
                     const cardsArray = Array.from(cards).filter(card => card.style.display !== 'none');
@@ -2842,56 +3078,13 @@
                     cardsArray.forEach(card => {
                         container.appendChild(card);
                     });
+                    
+                    // Reattach click handlers after shuffling
+                    attachCardClickHandlers();
                 });
                 
-                // Populate hero filter
-                const heroFilter = document.getElementById('hero-filter');
-                const heroes = [...new Set(Array.from(cards).map(card => card.dataset.hero))].sort();
-                
-                heroes.forEach(hero => {
-                    const option = document.createElement('option');
-                    option.value = hero;
-                    option.textContent = hero;
-                    heroFilter.appendChild(option);
-                });
-                
-                // Filter functionality
-                function applyFilters(reset = false) {
-                    const roleFilter = document.getElementById('role-filter').value;
-                    const heroFilter = document.getElementById('hero-filter').value;
-                    const tierFilter = document.getElementById('tier-filter').value;
-                    
-                    let visibleCount = 0;
-                    
-                    cards.forEach(card => {
-                        if (reset) {
-                            card.style.display = 'block';
-                            visibleCount++;
-                        } else {
-                            const matchesRole = roleFilter === 'all' || card.dataset.role === roleFilter;
-                            const matchesHero = heroFilter === 'all' || card.dataset.hero === heroFilter;
-                            const matchesTier = tierFilter === 'all' || card.dataset.tier === tierFilter;
-                            
-                            if (matchesRole && matchesHero && matchesTier) {
-                                card.style.display = 'block';
-                                visibleCount++;
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        }
-                    });
-                    
-                    // Update stats
-                    document.getElementById('stats').textContent = `SHOWING ${visibleCount} OF ${cards.length} PERKS`;
-                }
-                
-                // Add event listeners to filters
-                document.getElementById('role-filter').addEventListener('change', () => applyFilters());
-                document.getElementById('hero-filter').addEventListener('change', () => applyFilters());
-                document.getElementById('tier-filter').addEventListener('change', () => applyFilters());
-                
-                // Initialize stats
-                document.getElementById('stats').textContent = `SHOWING ${cards.length} OF ${cards.length} PERKS`;
+                // Initial filter application
+                applyFilters();
             });
         </script>
     </body>
